@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>INFO4310 - HW4</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://unpkg.com/d3-tile@1.0.0"></script>
+</head>
+<body>
+<div id="map"></div>
+<script>
+    function createMap(width, height) {
+        const svg = d3.create("svg")
+            .attr("viewBox", [0, 0, width, height]);
+        const geojsonLayer = svg.append("g");
+
+        const tile = d3.tile()
+            .extent([[0, 0], [width, height]])
+            .tileSize(512)
+            .clampX(false);
+
+        const zoom = d3.zoom()
+            .scaleExtent([1 << 8, 1 << 28])
+            .extent([[0, 0], [width, height]])
+            .on("zoom", (event) => zoomed(event.transform));
+
+        let image = svg.append("g")
+            .attr("pointer-events", "none")
+            .selectAll("image");
+
+        svg
+            .call(zoom)
+            .call(zoom.transform, d3.zoomIdentity
+                .translate(width / 2, height / 2)
+                .scale(1 << 12));
+
+
+        function zoomed(transform) {
+            const tiles = tile(transform);
+
+            image = image.data(tiles, d => d).join("image")
+                .attr("xlink:href", d => `https://tile.openstreetmap.org/${d[2]}/${d[0]}/${d[1]}.png`)
+                .attr("x", ([x]) => (x + tiles.translate[0]) * tiles.scale)
+                .attr("y", ([, y]) => (y + tiles.translate[1]) * tiles.scale)
+                .attr("width", tiles.scale)
+                .attr("height", tiles.scale);
+
+            geojsonLayer.attr("transform", transform);
+        }
+
+        d3.json("data/pdx-routes-data-for-e-bike-in-all-time.geojson").then(f => {
+            // Portland
+            var centerLongitude = -122.6765;
+            var centerLatitude = 45.5231;
+
+            const projection = d3.geoMercator()
+                .center([centerLongitude, centerLatitude])
+                .scale(10000)
+                .translate([width / 2, height / 2]);
+
+
+            const geoPath = d3.geoPath()
+                .projection(projection);
+
+            geojsonLayer.selectAll("path")
+                .data(f.features)
+                .enter()
+                .append("path")
+                .attr("d", geoPath)
+                .attr("fill", "none")
+                .attr("stroke", "blue")
+                .attr("stroke-width", 3);
+        });
+
+
+        return svg.node();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const width = 600;
+        const height = 600;
+
+        const map = createMap(width, height);
+        document.getElementById('map').appendChild(map);
+    });
+</script>
+</body>
+</html>
