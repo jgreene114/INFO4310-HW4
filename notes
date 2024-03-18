@@ -1,0 +1,4 @@
+Interpolating values:
+    - Each individual hub should have the same coords, can interpolate coords//hub names
+    - Trips missing one of start/end date but containing valid duration
+    -
