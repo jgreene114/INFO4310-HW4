@@ -164,13 +164,15 @@ for node_id, node_data in nodes.items():
         node_data['Name'] = None
 
 nodes_df = pd.DataFrame.from_dict(nodes, orient='index')
+
+# filtering data to only hubs and trips with at least 10 trips
 nodes_df = nodes_df[nodes_df['Count'] > 10]
 
 df_for_export = (
     df_for_export[
         df_for_export['StartID'].isin(nodes_df.index) &
         df_for_export['EndID'].isin(nodes_df.index)
-    ]
+        ]
 )
 
 nodes_df = nodes_df.reset_index().rename(columns={'index': 'id'})
