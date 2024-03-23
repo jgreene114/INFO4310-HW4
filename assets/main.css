@@ -1,27 +1,67 @@
 #map {
     position: fixed !important;
-    bottom: 0;
+    /*bottom: 0;*/
     right: 0;
     width: 100%;
     height: 100%;
+    z-index: 0;
+}
+
+body {
+    margin: 0;
 }
 
 #parent-chart-container {
     position: fixed;
     right: 0;
-    bottom: 0;
+    /*bottom: 0;*/
     width: 27%;
     min-width: 300px;
     max-width: 500px;
     height: 100%;
+    pointer-events: none;
 }
 
 .chart-div {
     /*background-color: white;*/
-
+    margin: 10px;
+    pointer-events: auto;
 }
 
 .chart-div h1 {
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     margin: 10px 10px 0px;
+}
+
+#map-mode-dropdown-container {
+    /*position: absolute;*/
+    /*top: 10px;*/
+    /*left: 50px;*/
+    margin: 10px 0 0 10px;
+    background-color: white;
+    z-index: 1000;
+    padding: 5px;
+    border-radius: 10px;
+    border: 2px inset black;
+    pointer-events: auto;
+    /*height:*/
+    /*height: 100px;*/
+    /*width: 100px;*/
+}
+
+.leaflet-control-container .leaflet-top.leaflet-left {
+    display: flex;
+
+}
+
+#header-bar {
+    margin: 0;
+    padding: 10px;
+    height: 120px;
+    z-index: 100000;
+    background-color: darkorange;
+    color: white;
+    font-weight: bolder;
+    font-family: Arial;
+    font-size: 100px;
 }

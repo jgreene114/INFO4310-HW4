@@ -39,10 +39,18 @@ function createBeeswarmChart(selector, variable, title, tripData, hubData) {
 
     const scaledTrips = aggTrips.map(d => ({
         key: d['key'],
-        count: countScale(d.count)
+        count: countScale(d.count),
+        uniqueStartIDs: d.uniqueStartIDs
     }));
 
-    const expandedTrips = scaledTrips.flatMap(d => d3.range(d.count).map(() => ({ key: d.key })));
+    const expandedTrips = scaledTrips
+        .flatMap(d => 
+            d3.range(d.count).map(() => ({
+                key: d.key,
+                count: d.count,
+                uniqueStartIDs: d.uniqueStartIDs
+            }))
+        );
 
     const container = d3.select(selector);
     const chartDiv = container.append('div')
@@ -57,7 +65,7 @@ function createBeeswarmChart(selector, variable, title, tripData, hubData) {
         svg.selectAll('*').remove();
 
         const width = chartDiv.node().clientWidth;
-        const height = Math.max(90, width / 3);
+        const height = Math.max(80, width / 4);
 
         svg.attr('width', width).attr('height', height);
 
@@ -97,13 +105,14 @@ function createBeeswarmChart(selector, variable, title, tripData, hubData) {
 
         let simulation = d3.forceSimulation(expandedTrips)
             .force('x', d3.forceX(d => xScale(d.key)).strength(1))
-            .force('y', d3.forceY().y(centerY).strength(0.05))
-            .force('collide', d3.forceCollide().radius(3));
+            .force('y', d3.forceY().y(centerY).strength(0.08))
+            .force('collide', d3.forceCollide().radius(2.755));
 
         simulation.on('tick', () => {
             g.selectAll('circle')
                 .data(expandedTrips)
                 .join('circle')
+                .attr('class', 'mini-chart-point')
                 .attr('cx', d => d.x)
                 .attr('cy', d => d.y)
                 .attr('r', 2)
@@ -117,7 +126,7 @@ function createBeeswarmChart(selector, variable, title, tripData, hubData) {
             .style("border", "solid black 1px")
             .style("border-radius", "20px");
 
-        const brush = d3.brush()
+        const brush = d3.brushX()
             .extent([[margin.left, margin.top], [width - margin.right, height - margin.bottom]])
             .on("start brush end", brushed);
 

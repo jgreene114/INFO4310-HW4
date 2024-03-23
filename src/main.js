@@ -16,6 +16,16 @@ const createMap = function (minZoom, maxZoom, initZoom) {
     );
     map.setMaxBounds(bBox);
     
+    d3.select('.leaflet-control-container .leaflet-top.leaflet-left')
+        .append("div")
+        .attr("id", "map-mode-dropdown-container")
+        .html(
+            `Mode:<br><select id="map-mode-dropdown" onchange="modePicker(this.value)">
+                <option value="normal">Normal</option>
+                <option value="radiusByCount">Size by count</option>
+                <option value="contour">Contour</option>
+            </select>`
+        )
     return map
 }
 
@@ -56,33 +66,75 @@ const loadData = async function () {
 }
 
 
-const plotHubs = function (hubsLayer, hubData, aggTripData, minZoom, maxZoom, initZoom) {
+const plotHubs = function (mapMode, hubsLayer, hubArray, hubData, aggTripData, minZoom, maxZoom, initZoom) {
     const fillOpacity = .3
     const strokeOpacity = 1
-    const minRadius = .1,
-        maxRaduis = 8
-    const radiusScale = d3.scaleLinear()
-        .domain([minZoom, maxZoom])
-        .range([minRadius, maxRaduis]);
-    const hoverRadiusScale = d3.scaleLinear()
-        .domain([minZoom, maxZoom])
-        .range([minRadius * 1.5, maxRaduis * 1.5]);
 
-    addHoverEffect = function (selection, primaryColor, hoverColor,
-                               radiusScale, hoverRadiusScale,
-                               fillOpacity, strokeOpacity,
-                               zoom) {
+    let radiusScale;
+    let hoverRadiusScale;
+    let zoomFactor;
+    zoomFactor = d3.scaleLinear()
+        .domain([minZoom, maxZoom])
+        .range([minRadius, maxRadius]);
+    switch (mapMode) {
+        case "radiusByCount":
+            // const startIDCounts = Array.from(hubData.values()).map(hub => {
+            //     return aggTripData.filter(trip => trip.StartID === hub.id).length;
+            // });
+
+            let countScale = d3.scaleLinear()
+                .domain(d3.extent(hubArray, d => d.Count))
+                .range([.5, 5]);
+
+
+            radiusScale = (count, zoom) => {
+                return countScale(count) * zoomFactor(zoom);
+            };
+
+            hoverRadiusScale = (count, zoom) => {
+                const hoverFactor = d3.scaleLinear()
+                    .domain([minZoom, maxZoom])
+                    .range([3, 1.5]);
+
+
+                return radiusScale(count, zoom) * hoverFactor(zoom);
+            };
+            break;
+        default:
+            radiusScale = (count, zoom) => {
+                return zoomFactor(zoom);
+            };
+
+            hoverRadiusScale = (count, zoom) => {
+                const hoverFactor = d3.scaleLinear()
+                    .domain([minZoom, maxZoom])
+                    .range([5, 1.5]);
+
+
+                return radiusScale(count, zoom) * hoverFactor(zoom);
+            };
+
+    }
+
+    let addHoverEffect = function (selection, primaryColor, hoverColor,
+                                   radiusScale, hoverRadiusScale,
+                                   fillOpacity, strokeOpacity,
+                                   zoom) {
         selection
             .on('mouseover', function () {
-                d3.selectAll('circle.point').interrupt()
-                    .transition()
-                    .duration(transitionDuration * 3)
-                    .attr("r", radiusScale(zoom) * .8)
-                    .attr("fill", unselectedGrey)
-                    .attr("fill-opacity", fillOpacity * .75)
-                    .attr("stroke", unselectedGrey)
-                    .attr("stroke-opacity", strokeOpacity * .75)
+                hubsLayer.selectAll('circle.point').each(function (d) {
+                    const currentCircle = d3.select(this);
+                    currentCircle.interrupt()
+                        .transition()
+                        .duration(transitionDuration * 3)
+                        .attr("r", radiusScale(d.Count, zoom) * 0.8)
+                        .attr("fill", unselectedGrey)
+                        .attr("fill-opacity", fillOpacity * 0.75)
+                        .attr("stroke", unselectedGrey)
+                        .attr("stroke-opacity", strokeOpacity * 0.75);
+                });
 
+                const hoveredData = d3.select(this).datum();
                 d3.select(this)
                     .style('cursor', 'pointer')
                     .transition()
@@ -91,34 +143,27 @@ const plotHubs = function (hubsLayer, hubData, aggTripData, minZoom, maxZoom, in
                     .attr("fill", hoverColor)
                     .attr("fill-opacity", fillOpacity)
                     .attr("stroke", hoverColor)
-                    .attr('r', hoverRadiusScale(zoom) * 1.5)
+                    .attr('r', hoverRadiusScale(hoveredData.Count, zoom) * 1.5)
                     .transition()
                     .duration(transitionDuration)
                     .ease(d3.easeExpOut)
-                    .attr('r', hoverRadiusScale(zoom))
+                    .attr('r', hoverRadiusScale(hoveredData.Count, zoom));
             })
             .on('mouseout', function () {
-                d3.select(this)
-                    .transition()
-                    .duration(transitionDuration)
-                    .ease(d3.easeExpIn)
-                    .attr('r', hoverRadiusScale(zoom) * 1.5)
-                    .transition()
-                    .duration(transitionDuration)
-                    .ease(d3.easeExpOut)
-                    .attr('r', radiusScale(zoom))
-
-                d3.selectAll('circle.point').interrupt()
-                    .transition()
-                    .duration(transitionDuration)
-                    .attr("r", radiusScale(zoom))
-                    .attr("fill", primaryColor)
-                    .attr("fill-opacity", fillOpacity)
-                    .attr("stroke", primaryColor)
-                    .attr("stroke-opacity", strokeOpacity)
-
+                hubsLayer.selectAll('circle.point').each(function (d) {
+                    const currentCircle = d3.select(this);
+                    currentCircle.transition()
+                        .duration(transitionDuration)
+                        .attr("r", radiusScale(+d.Count, zoom))
+                        .attr("fill", primaryColor)
+                        .attr("fill-opacity", fillOpacity)
+                        .attr("stroke", primaryColor)
+                        .attr("stroke-opacity", strokeOpacity);
+                });
             });
     }
+    
+    hubsLayer.selectAll("circle.point").remove()
 
     hubData.forEach(d => {
         const coords = map.latLngToLayerPoint(new L.LatLng(d.lat, d.lon));
@@ -136,7 +181,7 @@ const plotHubs = function (hubsLayer, hubData, aggTripData, minZoom, maxZoom, in
             .attr("fill-opacity", fillOpacity)
             .attr("stroke", primaryColor)
             .attr("stroke-opacity", strokeOpacity)
-            .attr("r", radiusScale(initZoom))
+            .attr("r", radiusScale(+d.Count, initZoom))
             .attr("cx", coords.x)
             .attr("cy", coords.y)
 
@@ -151,18 +196,24 @@ const plotHubs = function (hubsLayer, hubData, aggTripData, minZoom, maxZoom, in
         let hoverColor = colorPalette['complement'][0]
 
         let circle = hubsLayer.selectAll('circle')
-            .attr("cx", d => map.latLngToLayerPoint(new L.LatLng(d.lat, d.lon)).x)
-            .attr("cy", d => map.latLngToLayerPoint(new L.LatLng(d.lat, d.lon)).y)
-            .attr('r', radiusScale(currentZoom))
+            .each(function (d) {
+                console.log(radiusScale(+d.Count, currentZoom))
+                // console.log(+d.Count)
+                // console.log(d)
+                d3.select(this)
+                    .attr("r", radiusScale(+d.Count, currentZoom))
+                    .attr("cx", map.latLngToLayerPoint(new L.LatLng(d.lat, d.lon)).x)
+                    .attr("cy", map.latLngToLayerPoint(new L.LatLng(d.lat, d.lon)).y)
+            })
 
+        console.log(currentZoom)
         addHoverEffect(circle, primaryColor, hoverColor, radiusScale, hoverRadiusScale, fillOpacity, strokeOpacity, currentZoom)
-        // addHoverEffect(circle, primaryColor, hoverColor, currentZoom)
     }
 
     map.on("zoomend viewreset", update);
 
 }
-
+let modePicker;
 
 const initialDrawPage = async function () {
     const map = createMap(minZoom, maxZoom, initZoom)
@@ -181,7 +232,12 @@ const initialDrawPage = async function () {
     // console.log("hubArray")
     // console.log(hubArray)
     
-    plotHubs(hubsLayer, hubData, aggTripData, minZoom, maxZoom, initZoom)
+    modePicker = function (mapMode) {
+        const currentZoom = map.getZoom();
+        plotHubs(mapMode, hubsLayer, hubArray, hubData, aggTripData, minZoom, maxZoom, currentZoom)
+    }
+    
+    plotHubs("Normal", hubsLayer, hubArray, hubData, aggTripData, minZoom, maxZoom, initZoom)
     createBeeswarmChart('#parent-chart-container', 'StartDate', "Trips x Hours", tripData, hubData)
     createBeeswarmChart('#parent-chart-container', 'DistanceMiles', "Trips x Distance", tripData, hubData)
 }

@@ -13,7 +13,7 @@ const transitionDuration = 200
 const fillOpacity = .3
 const strokeOpacity = 1
 const minRadius = .1,
-    maxRaduis = 8
+    maxRadius = 8
 
 
 // const modes = {
