@@ -10,7 +10,7 @@ function createBeeswarmChart(selector, variable, title, tripData, hubData) {
                 const date = new Date(d.StartDate);
                 return date.getHours();
             });
-            
+
             countScale.range([0, 20]);
             break;
         case 'DistanceMiles':
@@ -27,7 +27,7 @@ function createBeeswarmChart(selector, variable, title, tripData, hubData) {
             break;
     }
 
-    aggTrips = Array.from(aggTrips, ([key, {count, uniqueStartIDs}]) => ({
+    aggTrips = Array.from(aggTrips, ([key, { count, uniqueStartIDs }]) => ({
         key,
         count,
         uniqueStartIDs: Array.from(uniqueStartIDs)
@@ -42,7 +42,7 @@ function createBeeswarmChart(selector, variable, title, tripData, hubData) {
         count: countScale(d.count)
     }));
 
-    const expandedTrips = scaledTrips.flatMap(d => d3.range(d.count).map(() => ({key: d.key})));
+    const expandedTrips = scaledTrips.flatMap(d => d3.range(d.count).map(() => ({ key: d.key })));
 
     const container = d3.select(selector);
     const chartDiv = container.append('div')
@@ -51,7 +51,7 @@ function createBeeswarmChart(selector, variable, title, tripData, hubData) {
     chartDiv.append("h1").text(title).style("color", colorPalette['primary'][3])
 
     let svg = chartDiv.append('svg');
-    const margin = {top: 0, right: 25, bottom: 20, left: 25};
+    const margin = { top: 0, right: 25, bottom: 20, left: 25 };
 
     function drawChart() {
         svg.selectAll('*').remove();
@@ -77,7 +77,7 @@ function createBeeswarmChart(selector, variable, title, tripData, hubData) {
                 xScale = d3.scaleLinear()
                     .domain(d3.extent(aggTrips, d => d.key))
                     .range([0, width - margin.left - margin.right]);
-                
+
                 xAxis = d3.axisBottom(xScale).ticks(6);
                 break;
             default:
@@ -116,6 +116,23 @@ function createBeeswarmChart(selector, variable, title, tripData, hubData) {
         chartDiv.style("background-color", "white")
             .style("border", "solid black 1px")
             .style("border-radius", "20px");
+
+        const brush = d3.brush()
+            .extent([[margin.left, margin.top], [width - margin.right, height - margin.bottom]])
+            .on("start brush end", brushed);
+
+        svg.append("g")
+            .call(brush);
+
+        function brushed(event) {
+            const selection = event.selection;
+            if (selection === null) return;
+
+            const [x0, x1] = selection;
+
+            g.selectAll('circle')
+                .classed("hidden", d => xScale(d.key) < x0 || xScale(d.key) > x1);
+        }
     }
 
     drawChart();
