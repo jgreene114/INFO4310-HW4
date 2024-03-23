@@ -6,7 +6,7 @@ const unselectedGrey = "#7a7a7a"
 
 const minZoom = 11;
 const maxZoom = 20;
-const initZoom = 12;
+const initZoom = 14;
 
 const transitionDuration = 200
 
@@ -26,3 +26,8 @@ const minRadius = .1,
 //     }
 // //     this mode is the lines on top of the hubs
 // } 
+
+const variableToTitles = {
+    "StartDate": "Trips x Hour",
+    "DistanceMiles": "Trips x Distance"
+}

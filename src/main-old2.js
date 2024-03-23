@@ -452,7 +452,7 @@ const initialDrawPage = async function () {
                 let topAggTripData = aggTripData.slice(0, 5000);
                 
                 drawTrips(tripsLayer, svg, topAggTripData, initZoom)
-                console.log(topAggTripData)
+                // console.log(topAggTripData)
             }
                 break;
         }

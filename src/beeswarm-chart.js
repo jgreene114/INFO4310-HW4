@@ -1,6 +1,9 @@
-function createBeeswarmChart(selector, variable, title, tripData, hubData) {
+function createBeeswarmChart(selector, variable, title, tripData, hubsLayer, hubArray, hubData, contourLayer) {
     let aggTrips;
     let countScale = d3.scaleLinear();
+    let xScale, xAxis //, brushG, g;
+    
+    let truncationLimit;
     switch (variable) {
         case 'StartDate':
             aggTrips = d3.rollup(tripData, v => ({
@@ -14,16 +17,18 @@ function createBeeswarmChart(selector, variable, title, tripData, hubData) {
             countScale.range([0, 20]);
             break;
         case 'DistanceMiles':
+            truncationLimit = 5;
+            
             aggTrips = d3.rollup(tripData, v => ({
                 count: v.length,
                 uniqueStartIDs: new Set(v.map(d => d.StartID))
             }), d => {
-                return Math.round(d.DistanceMiles * 2) / 2;
+                const distance = Math.round(d.DistanceMiles * 4) / 4;
+                return distance >= truncationLimit ? truncationLimit : distance;
             });
-            countScale.range([0, 18]);
+            countScale.range([0, 40]);
             break;
         default:
-            // Handle other variables here
             break;
     }
 
@@ -44,7 +49,7 @@ function createBeeswarmChart(selector, variable, title, tripData, hubData) {
     }));
 
     const expandedTrips = scaledTrips
-        .flatMap(d => 
+        .flatMap(d =>
             d3.range(d.count).map(() => ({
                 key: d.key,
                 count: d.count,
@@ -52,24 +57,39 @@ function createBeeswarmChart(selector, variable, title, tripData, hubData) {
             }))
         );
 
-    const container = d3.select(selector);
-    const chartDiv = container.append('div')
-        .attr('class', 'chart-div');
-
-    chartDiv.append("h1").text(title).style("color", colorPalette['primary'][3])
-
-    let svg = chartDiv.append('svg');
+    let chartDiv = d3.select(selector).attr('class', 'chart-div');
+    if (chartDiv.select("h1").empty()) {
+        chartDiv.append("h1")
+            .text(title)
+            .style("color", colorPalette['primary'][3]);
+    }
+    
+    let svg = chartDiv.select('svg.beeswarm-chart');
+    if (svg.empty()) {
+        svg = chartDiv.append('svg')
+            .attr('class', 'beeswarm-chart')
+            .attr('data-variable', variable);
+    }
+    
     const margin = { top: 0, right: 25, bottom: 20, left: 25 };
+    const width = chartDiv.node().clientWidth;
+    const height = Math.max(80, width / 4);
+    svg.attr('width', width).attr('height', height);
 
+    const brush = d3.brushX()
+        .extent([[0, 0], [width - margin.left - margin.right, height - margin.top - margin.bottom]])
+        // .extent([[0, 0], [width - margin.left - margin.right, height]])
+        .on("start brush end", brushed);
+
+    let brushG = svg.select("g.brush")
+    if (brushG.empty()) {
+        brushG = svg.append("g")
+            .attr('class', 'brush')
+            .attr('transform', `translate(${margin.left},${margin.top})`)
+            .call(brush);
+    }
+    
     function drawChart() {
-        svg.selectAll('*').remove();
-
-        const width = chartDiv.node().clientWidth;
-        const height = Math.max(80, width / 4);
-
-        svg.attr('width', width).attr('height', height);
-
-        let xScale, xAxis;
         switch (variable) {
             case 'StartDate':
                 xScale = d3.scaleLinear().domain([0, 24]).range([0, width - margin.left - margin.right]);
@@ -83,10 +103,15 @@ function createBeeswarmChart(selector, variable, title, tripData, hubData) {
                 break;
             case 'DistanceMiles':
                 xScale = d3.scaleLinear()
-                    .domain(d3.extent(aggTrips, d => d.key))
+                    .domain([0,truncationLimit])//d3.extent(aggTrips, d => d.key))
                     .range([0, width - margin.left - margin.right]);
 
-                xAxis = d3.axisBottom(xScale).ticks(6);
+                xAxis = d3.axisBottom(xScale)
+                    .tickFormat(d => {
+                        if (d === truncationLimit) return `≥${d} Mi`;
+                        return `${d} Mi`;
+                    })
+                    .ticks(truncationLimit);
                 break;
             default:
                 xScale = d3.scaleLinear().domain(d3.extent(aggTrips, d => d.key)).range([0, width - margin.left - margin.right]);
@@ -94,55 +119,88 @@ function createBeeswarmChart(selector, variable, title, tripData, hubData) {
                 break;
         }
 
+        g = svg.select('g.main-group');
+        if (g.empty()) {
+            g = svg.append('g')
+                .attr('class', 'main-group')
+                .attr('transform', `translate(${margin.left},${margin.top})`);
+            
+            g.append('g')
+                .attr('transform', `translate(0,${height - margin.top - margin.bottom})`)
+                .call(xAxis);
+        }
+
         const centerY = (height - margin.top - margin.bottom) / 2;
-
-        const g = svg.append('g')
-            .attr('transform', `translate(${margin.left},${margin.top})`);
-
-        g.append('g')
-            .attr('transform', `translate(0,${height - margin.top - margin.bottom})`)
-            .call(xAxis);
-
         let simulation = d3.forceSimulation(expandedTrips)
             .force('x', d3.forceX(d => xScale(d.key)).strength(1))
-            .force('y', d3.forceY().y(centerY).strength(0.08))
-            .force('collide', d3.forceCollide().radius(2.755));
+            .force('y', d3.forceY().y(centerY).strength(0.09))
+            .force('collide', d3.forceCollide().radius(3));
 
+        let circles = g.selectAll('circle.mini-chart-point')
+            .data(expandedTrips);
+
+        circles = circles.enter()
+            .append('circle')
+            .attr('class', 'mini-chart-point')
+            .attr('r', 2)
+            .merge(circles)
+            .style('fill', colorPalette['complement'][0])
+
+        circles.exit().remove();
+
+        let ticks = 0;
         simulation.on('tick', () => {
-            g.selectAll('circle')
-                .data(expandedTrips)
-                .join('circle')
-                .attr('class', 'mini-chart-point')
+            ticks++;
+
+            // g.selectAll('circle.mini-chart-point')
+            circles
                 .attr('cx', d => d.x)
-                .attr('cy', d => d.y)
-                .attr('r', 2)
-                .style('fill', colorPalette['complement'][0])
-                .on("mouseover", function (d) {
-                    console.log(d3.select(this).datum());
-                });
+                .attr('cy', d => d.y);
+            
+            if (ticks > 100 || simulation.alpha() < 0.01) {
+                simulation.stop();
+            }
         });
-
-        chartDiv.style("background-color", "white")
-            .style("border", "solid black 1px")
-            .style("border-radius", "20px");
-
-        const brush = d3.brushX()
-            .extent([[margin.left, margin.top], [width - margin.right, height - margin.bottom]])
-            .on("start brush end", brushed);
-
-        svg.append("g")
-            .call(brush);
-
-        function brushed(event) {
-            const selection = event.selection;
-            if (selection === null) return;
-
-            const [x0, x1] = selection;
-
-            g.selectAll('circle')
-                .classed("hidden", d => xScale(d.key) < x0 || xScale(d.key) > x1);
-        }
     }
+
+    chartDiv.style("background-color", "white")
+        .style("border", "solid black 1px")
+        .style("border-radius", "20px");
+
+    
+
+    function brushed(event) {
+        const selection = event.selection;
+        const selectedColor = colorPalette["complement"][0]
+        const outsideColor = unselectedGrey
+        const normalColor = colorPalette["complement"][0]
+        if (selection && selection[0] !== selection[1]) {
+            
+            const [x0, x1] = selection;
+            const [filter0, filter1] = selection.map(xScale.invert)
+            sharedStateFilters[variable] = [filter0, filter1];
+
+            svg.selectAll('circle.mini-chart-point')
+                .transition()
+                .duration(transitionDuration / 3)
+                .style('fill', d => {
+                    return xScale(d.key) >= x0 && xScale(d.key) <= x1 ? selectedColor : outsideColor
+                })
+                .style("opacity", d =>
+                    xScale(d.key) >= x0 && xScale(d.key) <= x1 ? 1 : .4
+                );
+        } else {
+            sharedStateFilters[variable] = null;
+            svg.selectAll('circle')
+                .transition()
+                .duration(transitionDuration / 3)
+                .style("opacity", 1)
+                .style('fill', normalColor);
+        }
+        updateMapSelection(sharedStateFilters, tripData, hubsLayer, hubArray, hubData, contourLayer)
+        
+    }
+    
 
     drawChart();
 

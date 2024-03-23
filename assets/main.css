@@ -28,6 +28,10 @@ body {
     pointer-events: auto;
 }
 
+.chart-div .mini-chart-point {
+    pointer-events: none;
+}
+
 .chart-div h1 {
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     margin: 10px 10px 0px;

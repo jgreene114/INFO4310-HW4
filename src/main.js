@@ -9,7 +9,7 @@ const createMap = function (minZoom, maxZoom, initZoom) {
         minZoom: minZoom
     }).addTo(map);
 
-    const bBoxPadding = 0.1; // Increase or decrease this value to adjust the padding around the bounds
+    const bBoxPadding = 0.1; 
     const bBox = L.latLngBounds(
         L.latLng(45.4325 - bBoxPadding, -122.8367 - bBoxPadding),
         L.latLng(45.6529 + bBoxPadding, -122.4720 + bBoxPadding)
@@ -67,8 +67,10 @@ const loadData = async function () {
 
 
 const plotHubs = function (mapMode, hubsLayer, hubArray, hubData, aggTripData, minZoom, maxZoom, initZoom) {
+    
     const fillOpacity = .3
     const strokeOpacity = 1
+
 
     let radiusScale;
     let hoverRadiusScale;
@@ -78,10 +80,6 @@ const plotHubs = function (mapMode, hubsLayer, hubArray, hubData, aggTripData, m
         .range([minRadius, maxRadius]);
     switch (mapMode) {
         case "radiusByCount":
-            // const startIDCounts = Array.from(hubData.values()).map(hub => {
-            //     return aggTripData.filter(trip => trip.StartID === hub.id).length;
-            // });
-
             let countScale = d3.scaleLinear()
                 .domain(d3.extent(hubArray, d => d.Count))
                 .range([.5, 5]);
@@ -97,7 +95,7 @@ const plotHubs = function (mapMode, hubsLayer, hubArray, hubData, aggTripData, m
                     .range([3, 1.5]);
 
 
-                return radiusScale(count, zoom) * hoverFactor(zoom);
+                return radiusScale(count, zoom) + hoverFactor(zoom);
             };
             break;
         default:
@@ -108,7 +106,7 @@ const plotHubs = function (mapMode, hubsLayer, hubArray, hubData, aggTripData, m
             hoverRadiusScale = (count, zoom) => {
                 const hoverFactor = d3.scaleLinear()
                     .domain([minZoom, maxZoom])
-                    .range([5, 1.5]);
+                    .range([2, 1.5]);
 
 
                 return radiusScale(count, zoom) * hoverFactor(zoom);
@@ -165,7 +163,7 @@ const plotHubs = function (mapMode, hubsLayer, hubArray, hubData, aggTripData, m
     
     hubsLayer.selectAll("circle.point").remove()
 
-    hubData.forEach(d => {
+    hubArray.forEach(d => {
         const coords = map.latLngToLayerPoint(new L.LatLng(d.lat, d.lon));
 
         let primaryColor = colorPalette['primary'][0]
@@ -175,18 +173,24 @@ const plotHubs = function (mapMode, hubsLayer, hubArray, hubData, aggTripData, m
             .datum(d)
             .attr("id", d.id)
             .attr("class", "point")
+        
+        addHoverEffect(circle, primaryColor, hoverColor, radiusScale, hoverRadiusScale, fillOpacity, strokeOpacity, initZoom)
+        
+        circle
+            .attr("cx", coords.x)
+            .attr("cy", coords.y)
             .attr("fill", primaryColor)
             .attr("primary-color", primaryColor)
             .attr("hover-color", hoverColor)
             .attr("fill-opacity", fillOpacity)
             .attr("stroke", primaryColor)
             .attr("stroke-opacity", strokeOpacity)
+            .transition()
+            .duration(transitionDuration)
             .attr("r", radiusScale(+d.Count, initZoom))
-            .attr("cx", coords.x)
-            .attr("cy", coords.y)
+            .attr("display", mapMode === 'contour' ? 'none' : 'auto')
 
-        addHoverEffect(circle, primaryColor, hoverColor, radiusScale, hoverRadiusScale, fillOpacity, strokeOpacity, initZoom)
-        // addHoverEffect(circle, primaryColor, hoverColor, initZoom)
+        
     })
 
     const update = () => {
@@ -197,23 +201,105 @@ const plotHubs = function (mapMode, hubsLayer, hubArray, hubData, aggTripData, m
 
         let circle = hubsLayer.selectAll('circle')
             .each(function (d) {
-                console.log(radiusScale(+d.Count, currentZoom))
-                // console.log(+d.Count)
-                // console.log(d)
                 d3.select(this)
                     .attr("r", radiusScale(+d.Count, currentZoom))
                     .attr("cx", map.latLngToLayerPoint(new L.LatLng(d.lat, d.lon)).x)
                     .attr("cy", map.latLngToLayerPoint(new L.LatLng(d.lat, d.lon)).y)
             })
-
-        console.log(currentZoom)
+        
         addHoverEffect(circle, primaryColor, hoverColor, radiusScale, hoverRadiusScale, fillOpacity, strokeOpacity, currentZoom)
     }
 
     map.on("zoomend viewreset", update);
 
 }
-let modePicker;
+
+
+
+let modePicker, globalMapMode;
+let sharedStateFilters = {
+    StartDate: null,
+    DistanceMiles: null
+};
+
+function updateMapSelection(filters, tripData, hubsLayer, hubArray, hubData, contourLayer) {
+    const filteredData = tripData.filter(d => {
+        const startDate = new Date(d.StartDate);
+        const startHour = startDate.getHours();
+
+        let dateFilter = true;
+        let distanceFilter = true;
+
+        if (filters.StartDate) {
+            dateFilter = startHour >= filters.StartDate[0] && startHour <= filters.StartDate[1];
+        }
+        if (filters.DistanceMiles) {
+            distanceFilter = d.DistanceMiles >= filters.DistanceMiles[0] && d.DistanceMiles <= filters.DistanceMiles[1];
+        }
+
+        return dateFilter && distanceFilter;
+    });
+
+    let tripCountsByHub = d3.rollup(filteredData, trips => trips.length, d => d.StartID);
+
+    let activeStartIDs = new Set(filteredData.map(d => d.StartID));
+    hubArray = hubArray
+        .filter(hub => activeStartIDs.has(hub.id))
+        .map(hub => ({
+            ...hub,
+            Count: tripCountsByHub.get(hub.id)
+        }));
+    
+    switch (globalMapMode) {
+        default:
+            plotHubs(globalMapMode, hubsLayer, hubArray, hubData, filteredData, minZoom, maxZoom, map.getZoom());
+        break;
+        case 'contour':
+            drawContours(hubArray, contourLayer)
+        
+    }
+    
+}
+
+const drawContours = (hubArray, contourLayer) => {
+    const calculateAndDrawContours = () => {
+        const points = hubArray.map(hub => {
+            const point = map.latLngToLayerPoint(new L.LatLng(hub.lat, hub.lon));
+            return [point.x, point.y, hub.Count];
+        });
+
+        const density = d3.contourDensity()
+            .x(d => d[0])
+            .y(d => d[1])
+            .size([map.getSize().x, map.getSize().y])
+            .bandwidth(20);
+
+        const contours = density(points);
+
+        const densityValues = contours.map(d => d.value);
+        const densityExtent = d3.extent(densityValues);
+        
+        const contourColorScale = d3.scaleSequential(d3.interpolateViridis)
+            .domain(densityExtent);
+        
+        contourLayer.select('.contour-layer').remove();
+        
+        const contourGroup = contourLayer.append('g').attr('class', 'contour-layer');
+        contourGroup.selectAll('path')
+            .data(contours)
+            .enter().append('path')
+            .attr('d', d3.geoPath())
+            .attr('fill', d => contourColorScale(d.value))
+            .attr('stroke', 'none')
+            .attr('opacity', .1);
+    };
+
+    calculateAndDrawContours();
+
+    map.on("zoomend viewreset", calculateAndDrawContours);
+};
+
+
 
 const initialDrawPage = async function () {
     const map = createMap(minZoom, maxZoom, initZoom)
@@ -222,27 +308,27 @@ const initialDrawPage = async function () {
     const overlay = d3.select(map.getPanes().overlayPane)
     const svg = overlay.select('svg').attr("pointer-events", "auto")
     const hubsLayer = svg.append('g').attr("class", "hubs-layer")
-    const tripsLayer = svg.append('g').attr("class", "trips-layer")
+    const contourLayer = svg.append('g').attr("class", "contour-layer")
 
     const [tripData, hubArray, hubData, aggTripData] = await loadData()
-    // console.log("tripData")
-    // console.log(tripData)
-    // console.log("hubData")
-    // console.log(hubData)
-    // console.log("hubArray")
-    // console.log(hubArray)
     
     modePicker = function (mapMode) {
         const currentZoom = map.getZoom();
         plotHubs(mapMode, hubsLayer, hubArray, hubData, aggTripData, minZoom, maxZoom, currentZoom)
+        globalMapMode = mapMode
+        if (mapMode === 'contour') {drawContours(hubArray, contourLayer)}
     }
     
     plotHubs("Normal", hubsLayer, hubArray, hubData, aggTripData, minZoom, maxZoom, initZoom)
-    createBeeswarmChart('#parent-chart-container', 'StartDate', "Trips x Hours", tripData, hubData)
-    createBeeswarmChart('#parent-chart-container', 'DistanceMiles', "Trips x Distance", tripData, hubData)
+    let variable = 'StartDate'
+    createBeeswarmChart('#beeswarm-chart-startdate', variable, variableToTitles[variable], tripData, hubsLayer, hubArray, hubData, contourLayer)
+    variable = 'DistanceMiles'
+    createBeeswarmChart('#beeswarm-chart-distancemiles', variable, variableToTitles[variable], tripData, hubsLayer, hubArray, hubData, contourLayer)
+    if (globalMapMode === "contour") {
+        drawContours(hubArray, contourLayer);
+    }
+
 }
 
 initialDrawPage();
-
-
 
