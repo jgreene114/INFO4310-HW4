@@ -29,10 +29,15 @@ const createMap = function (minZoom, maxZoom, initZoom) {
     return map
 }
 
-const loadData = async function () {
+const loadData = async function (tripDataSampleN) {
     let hubArray = await d3.csv("data/Biketown Cleaned Data/hubs.csv");
     let hubData = new Map(hubArray.map(d => [d.id, d]));
-    const tripData = await d3.csv("data/Biketown Cleaned Data/trips.csv");
+    let tripData = await d3.csv("data/Biketown Cleaned Data/trips.csv");
+
+    if (tripDataSampleN) {
+        const sampleSize = tripDataSampleN;
+        tripData = d3.shuffle(tripData).slice(0, sampleSize);
+    }
 
     const nodes = hubArray.map(d => ({
         id: d.id,
@@ -253,7 +258,9 @@ function updateMapSelection(filters, tripData, hubsLayer, hubArray, hubData, con
     switch (globalMapMode) {
         default:
             plotHubs(globalMapMode, hubsLayer, hubArray, hubData, filteredData, minZoom, maxZoom, map.getZoom());
-        break;
+            contourLayer.select('*').remove();
+            map.off('zoomend viewreset', calculateAndDrawContours);
+            break;
         case 'contour':
             drawContours(hubArray, contourLayer)
         
@@ -295,8 +302,10 @@ const drawContours = (hubArray, contourLayer) => {
     };
 
     calculateAndDrawContours();
-
-    map.on("zoomend viewreset", calculateAndDrawContours);
+    
+    if (globalMapMode == "contour") {
+        map.on("zoomend viewreset", calculateAndDrawContours);
+    }
 };
 
 
@@ -310,13 +319,19 @@ const initialDrawPage = async function () {
     const hubsLayer = svg.append('g').attr("class", "hubs-layer")
     const contourLayer = svg.append('g').attr("class", "contour-layer")
 
-    const [tripData, hubArray, hubData, aggTripData] = await loadData()
+    let [tripData, hubArray, hubData, aggTripData] = await loadData()
+    // agg
     
     modePicker = function (mapMode) {
         const currentZoom = map.getZoom();
         plotHubs(mapMode, hubsLayer, hubArray, hubData, aggTripData, minZoom, maxZoom, currentZoom)
         globalMapMode = mapMode
-        if (mapMode === 'contour') {drawContours(hubArray, contourLayer)}
+        if (mapMode === 'contour') {
+            drawContours(hubArray, contourLayer)
+        } else {
+            contourLayer.select('*').remove();
+            map.off('zoomend viewreset', calculateAndDrawContours);
+        }
     }
     
     plotHubs("Normal", hubsLayer, hubArray, hubData, aggTripData, minZoom, maxZoom, initZoom)
@@ -326,6 +341,9 @@ const initialDrawPage = async function () {
     createBeeswarmChart('#beeswarm-chart-distancemiles', variable, variableToTitles[variable], tripData, hubsLayer, hubArray, hubData, contourLayer)
     if (globalMapMode === "contour") {
         drawContours(hubArray, contourLayer);
+    } else {
+        contourLayer.select('*').remove();
+        map.off('zoomend viewreset', calculateAndDrawContours);
     }
 
 }
