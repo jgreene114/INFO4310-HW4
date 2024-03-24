@@ -15,18 +15,6 @@ const strokeOpacity = 1
 const minRadius = .1,
     maxRadius = 8
 
-
-// const modes = {
-//     "normal": {
-//         "label": "Normal",
-//     //     this mode is just the hubs, hoverable. 
-//     },
-//     "trips-view": {
-//         "label": "Trip Overlay"
-//     }
-// //     this mode is the lines on top of the hubs
-// } 
-
 const variableToTitles = {
     "StartDate": "Trips x Hour",
     "DistanceMiles": "Trips x Distance"
