@@ -69,7 +69,7 @@ function createBeeswarmChart(selector, variable, title, tripData, hubsLayer, hub
             .attr("class", "tooltip")
             .style("position", "absolute")
             .style("visibility", "hidden")
-            .text("Your tooltip text")
+            .text("TOOLTIP TEXT")
             .style("color", colorPalette['complement'][3]);
 
     }
@@ -173,9 +173,9 @@ function createBeeswarmChart(selector, variable, title, tripData, hubsLayer, hub
         });
     }
 
-    chartDiv.style("background-color", "white")
-        .style("border", "solid black 1px")
-        .style("border-radius", "20px");
+    // chartDiv.style("background-color", "white")
+    //     .style("border", "solid black 1px")
+    //     .style("border-radius", "20px");
 
     
 

@@ -23,7 +23,10 @@ body {
 }
 
 .chart-div {
-    /*background-color: white;*/
+    background-color: rgba(255, 255, 255, 0.53);
+    border: 1px inset lightgray;
+    border-radius: 10px;
+    backdrop-filter: blur(3px);
     margin: 10px;
     pointer-events: auto;
 }
