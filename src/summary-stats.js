@@ -9,3 +9,7 @@ fetch('summary-stats.html')
             .node()
             .appendChild(clone);
     });
+
+
+// TODO creaet a function to run in update map selection (in main.js) that uses
+//  the filtered trip data to compute agg stats and fill the template (summary-stats.html)

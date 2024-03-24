@@ -57,6 +57,7 @@ function createBeeswarmChart(selector, variable, title, tripData, hubsLayer, hub
             }))
         );
 
+    // TODO: this is where tooltip  and title are styled
     let chartDiv = d3.select(selector).attr('class', 'chart-div');
     if (chartDiv.select("h1").empty()) {
         chartDiv.append("h1")
@@ -204,7 +205,7 @@ function createBeeswarmChart(selector, variable, title, tripData, hubsLayer, hub
             // if (variable === "StartDate") {
             //    
             // }
-
+            // TODO: Range tooltip is added here, change range output to pretty value (0mi // 1PM 1:30PM etc)
             tooltip.style("visibility", "visible")
                 .text(selection.map(xScale.invert).map(d => d.toFixed(1)).join(" - "));
 

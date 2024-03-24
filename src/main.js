@@ -245,6 +245,8 @@ function updateMapSelection(filters, tripData, hubsLayer, hubArray, hubData, con
         return dateFilter && distanceFilter;
     });
 
+    // TODO: here is where map is updated with new selection, redraw summary stats here
+
     let tripCountsByHub = d3.rollup(filteredData, trips => trips.length, d => d.StartID);
 
     let activeStartIDs = new Set(filteredData.map(d => d.StartID));
@@ -286,6 +288,7 @@ const drawContours = (hubArray, contourLayer) => {
         const densityValues = contours.map(d => d.value);
         const densityExtent = d3.extent(densityValues);
         
+        // TODO: CONTOUR COLOR SCALE
         const contourColorScale = d3.scaleSequential(d3.interpolateViridis)
             .domain(densityExtent);
         
@@ -334,7 +337,9 @@ const initialDrawPage = async function () {
         }
     }
     
+    
     plotHubs("Normal", hubsLayer, hubArray, hubData, aggTripData, minZoom, maxZoom, initZoom)
+    // TODO: here is where the titles are set
     let variable = 'StartDate'
     createBeeswarmChart('#beeswarm-chart-startdate', variable, variableToTitles[variable], tripData, hubsLayer, hubArray, hubData, contourLayer)
     variable = 'DistanceMiles'
