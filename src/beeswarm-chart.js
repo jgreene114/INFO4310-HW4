@@ -26,7 +26,7 @@ function createBeeswarmChart(selector, variable, title, tripData, hubsLayer, hub
                 const distance = Math.round(d.DistanceMiles * 4) / 4;
                 return distance >= truncationLimit ? truncationLimit : distance;
             });
-            countScale.range([0, 40]);
+            countScale.range([0, 20]);
             break;
         default:
             break;
@@ -62,6 +62,16 @@ function createBeeswarmChart(selector, variable, title, tripData, hubsLayer, hub
         chartDiv.append("h1")
             .text(title)
             .style("color", colorPalette['primary'][3]);
+    }
+    let tooltip = chartDiv.select(".tooltip");
+    if (tooltip.empty()) {
+        tooltip = chartDiv.append("div")
+            .attr("class", "tooltip")
+            .style("position", "absolute")
+            .style("visibility", "hidden")
+            .text("Your tooltip text")
+            .style("color", colorPalette['complement'][3]);
+
     }
     
     let svg = chartDiv.select('svg.beeswarm-chart');
@@ -189,6 +199,15 @@ function createBeeswarmChart(selector, variable, title, tripData, hubsLayer, hub
                 .style("opacity", d =>
                     xScale(d.key) >= x0 && xScale(d.key) <= x1 ? 1 : .4
                 );
+            
+            // let suffix;
+            // if (variable === "StartDate") {
+            //    
+            // }
+
+            tooltip.style("visibility", "visible")
+                .text(selection.map(xScale.invert).map(d => d.toFixed(1)).join(" - "));
+
         } else {
             sharedStateFilters[variable] = null;
             svg.selectAll('circle')
@@ -196,6 +215,9 @@ function createBeeswarmChart(selector, variable, title, tripData, hubsLayer, hub
                 .duration(transitionDuration / 3)
                 .style("opacity", 1)
                 .style('fill', normalColor);
+            tooltip
+                .style("visibility", "hidden");
+
         }
         updateMapSelection(sharedStateFilters, tripData, hubsLayer, hubArray, hubData, contourLayer)
         
