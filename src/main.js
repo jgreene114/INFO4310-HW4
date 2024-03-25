@@ -216,6 +216,9 @@ const plotHubs = function (mapMode, hubsLayer, hubArray, hubData, aggTripData, m
     }
 
     map.on("zoomend viewreset", update);
+    if (globalMapMode === "contour") {
+        map.on("zoomend viewreset", calculateAndDrawContours);
+    }
 
 }
 
@@ -265,7 +268,7 @@ function updateMapSelection(filters, tripData, hubsLayer, hubArray, hubData, con
             break;
         case 'contour':
             drawContours(hubArray, contourLayer)
-
+            map.on("zoomend viewreset", calculateAndDrawContours);
     }
 
 }
@@ -312,15 +315,15 @@ const drawContours = (hubArray, contourLayer) => {
             .attr('fill', d => contourColorScale(d.value))
             .attr('stroke', 'none')
             .attr('opacity', .1);
-    };
 
+    };
     calculateAndDrawContours();
 
-    // if (globalMapMode == "contour") {
-    //     map.on("zoomend viewreset", calculateAndDrawContours);
-    // } else {
-    //     map.off("zoomend viewreset", calculateAndDrawContours);
-    // }
+    if (globalMapMode == "contour") {
+        map.on("zoomend viewreset", calculateAndDrawContours);
+    } else {
+        map.off("zoomend viewreset", calculateAndDrawContours);
+    }
 
 };
 
