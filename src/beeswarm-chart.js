@@ -218,7 +218,14 @@ function createBeeswarmChart(selector, variable, title, tripData, hubsLayer, hub
             // }
             // TODO: Range tooltip is added here, change range output to pretty value (0mi // 1PM 1:30PM etc)
             tooltip.style("visibility", "visible")
-                .text(selection.map(xScale.invert).map(d => d.toFixed(1)).join(" - "));
+                .text(selection.map(xScale.invert).map(d => {
+                    const hours = Math.floor(d);
+                    const minutes = Math.floor((d - hours) * 60);
+                    const ampm = hours >= 12 ? 'PM' : 'AM';
+                    const formattedHours = ((hours + 11) % 12 + 1);
+                    const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
+                    return `${formattedHours}:${formattedMinutes} ${ampm}`;
+                }).join(" - "));
 
         } else {
             sharedStateFilters[variable] = null;
@@ -232,6 +239,7 @@ function createBeeswarmChart(selector, variable, title, tripData, hubsLayer, hub
 
         }
         updateMapSelection(sharedStateFilters, tripData, hubsLayer, hubArray, hubData, contourLayer)
+
 
     }
 

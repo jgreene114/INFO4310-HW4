@@ -290,10 +290,8 @@ const drawContours = (hubArray, contourLayer) => {
 
         const baseColor = d3.rgb("#A12B2B");
 
-        // Custom interpolator function
         const customInterpolator = (t) => {
-            // Adjust lightness and saturation based on `t` (which ranges from 0 to 1)
-            let modifiedColor = baseColor.brighter(t * 2).darker(t * 0.5); // Example modification
+            let modifiedColor = baseColor.brighter(t * 2).darker(t * 0.5);
             return modifiedColor.toString();
         };
 
