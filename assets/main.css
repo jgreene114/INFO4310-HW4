@@ -87,15 +87,16 @@ body {
     padding: 5px;
     border-radius: 10px;
     pointer-events: auto;
+    margin-left: 50px;
     /*height:*/
     /*height: 100px;*/
     /*width: 100px;*/
 }
 
-.leaflet-control-container .leaflet-top.leaflet-left {
+/* .leaflet-control-container .leaflet-top.leaflet-left {
     display: flex;
 
-}
+} */
 
 #header-bar {
     margin: 0;
