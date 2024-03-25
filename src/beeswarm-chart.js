@@ -62,14 +62,21 @@ function createBeeswarmChart(selector, variable, title, tripData, hubsLayer, hub
 
     // TODO: this is where tooltip  and title are styled
     let chartDiv = d3.select(selector).attr('class', 'chart-div');
-    if (chartDiv.select("h1").empty()) {
-        chartDiv.append("h1")
+    let chartTitleDiv = chartDiv.select("div")
+    
+    if (chartTitleDiv.empty()) {
+        chartTitleDiv = chartDiv.append("div")
+            .attr("class", "chart-title-div")
+    }
+    
+    if (chartTitleDiv.select("h1").empty()) {
+        chartTitleDiv.append("h1")
             .text(title)
             .style("color", "#A12B2B");
     }
-    let tooltip = chartDiv.select(".tooltip");
+    let tooltip = chartTitleDiv.select(".tooltip");
     if (tooltip.empty()) {
-        tooltip = chartDiv.append("div")
+        tooltip = chartTitleDiv.append("div")
             .attr("class", "tooltip")
             .style("position", "absolute")
             .style("visibility", "hidden")
@@ -217,7 +224,9 @@ function createBeeswarmChart(selector, variable, title, tripData, hubsLayer, hub
             //    
             // }
             // TODO: Range tooltip is added here, change range output to pretty value (0mi // 1PM 1:30PM etc)
-            tooltip.style("visibility", "visible")
+            tooltip
+                .style("visibility", "visible")
+                .style("position", "relative")
                 .text(selection.map(xScale.invert).map(d => {
                     const hours = Math.floor(d);
                     const minutes = Math.floor((d - hours) * 60);
@@ -235,7 +244,8 @@ function createBeeswarmChart(selector, variable, title, tripData, hubsLayer, hub
                 .style("opacity", 1)
                 .style('fill', normalColor);
             tooltip
-                .style("visibility", "hidden");
+                .style("visibility", "hidden")
+                .style("position", "absolute");
 
         }
         updateMapSelection(sharedStateFilters, tripData, hubsLayer, hubArray, hubData, contourLayer)
