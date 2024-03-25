@@ -277,6 +277,7 @@ function updateMapSelection(filters, tripData, hubsLayer, hubArray, hubData, con
 let calculateAndDrawContours;
 const drawContours = (hubArray, contourLayer) => {
     calculateAndDrawContours = () => {
+        if (globalMapMode !== 'contour') { return; }
         const points = hubArray.map(hub => {
             const point = map.latLngToLayerPoint(new L.LatLng(hub.lat, hub.lon));
             return [point.x, point.y, hub.Count];
@@ -316,10 +317,10 @@ const drawContours = (hubArray, contourLayer) => {
             .attr('opacity', .1);
 
     };
-    calculateAndDrawContours();
 
     if (globalMapMode == "contour") {
         map.on("zoomend viewreset", calculateAndDrawContours);
+        calculateAndDrawContours();
     } else {
         map.off("zoomend viewreset", calculateAndDrawContours);
     }
