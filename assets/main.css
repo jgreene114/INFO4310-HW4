@@ -22,9 +22,19 @@ body {
     pointer-events: none;
 }
 
+.domain, line {
+    stroke: #F86858;
+}
+
+.tick {
+    text {
+        fill: #A12B2B !important;
+        color: #A12B2B !important;
+    }
+}
+
 .chart-div {
-    background-color: rgba(255, 255, 255, 0.53);
-    border: 1px inset lightgray;
+    background-color: rgba(229, 198, 198, 0.53);
     border-radius: 10px;
     backdrop-filter: blur(3px);
     margin: 10px;
@@ -41,16 +51,41 @@ body {
     margin: 10px 10px 0px;
 }
 
+.mode {
+    padding: 0px;
+    margin: 0px;
+    padding-bottom: 8px;
+    color: #6b7280;;
+}
+
+.mode-title{
+    padding: 5px;
+    justify-content: center;
+    align-content: start;
+    font-size: larger;
+    font-weight: 600;
+    display: flex;
+    flex-direction: column;
+}
+
+#map-mode-dropdown{
+    background: #e98282d1;
+    border-radius: 5px;
+    border: none;
+    color: #A12B2B;
+    padding: 5px;
+    font-weight: 500;
+}
+
 #map-mode-dropdown-container {
     /*position: absolute;*/
     /*top: 10px;*/
     /*left: 50px;*/
     margin: 10px 0 0 10px;
-    background-color: white;
+    background-color: #f6a6847a;
     z-index: 1000;
     padding: 5px;
     border-radius: 10px;
-    border: 2px inset black;
     pointer-events: auto;
     /*height:*/
     /*height: 100px;*/
@@ -64,6 +99,9 @@ body {
 
 #header-bar {
     margin: 0;
+    background-image: url('header2.png');
+    background-size: cover; 
+    background-position: center;
     padding: 10px;
     height: 120px;
     z-index: 100000;

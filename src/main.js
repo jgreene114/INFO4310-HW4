@@ -9,22 +9,22 @@ const createMap = function (minZoom, maxZoom, initZoom) {
         minZoom: minZoom
     }).addTo(map);
 
-    const bBoxPadding = 0.1; 
+    const bBoxPadding = 0.1;
     const bBox = L.latLngBounds(
         L.latLng(45.4325 - bBoxPadding, -122.8367 - bBoxPadding),
         L.latLng(45.6529 + bBoxPadding, -122.4720 + bBoxPadding)
     );
     map.setMaxBounds(bBox);
-    
+
     d3.select('.leaflet-control-container .leaflet-top.leaflet-left')
         .append("div")
         .attr("id", "map-mode-dropdown-container")
         .html(
-            `Mode:<br><select id="map-mode-dropdown" onchange="modePicker(this.value)">
+            `<div class="mode-title"><p class="mode">MODE</p><select id="map-mode-dropdown" onchange="modePicker(this.value)">
                 <option value="normal">Normal</option>
                 <option value="radiusByCount">Size by count</option>
                 <option value="contour">Contour</option>
-            </select>`
+            </select></div>`
         )
     return map
 }
@@ -72,7 +72,7 @@ const loadData = async function (tripDataSampleN) {
 
 
 const plotHubs = function (mapMode, hubsLayer, hubArray, hubData, aggTripData, minZoom, maxZoom, initZoom) {
-    
+
     const fillOpacity = .3
     const strokeOpacity = 1
 
@@ -120,9 +120,9 @@ const plotHubs = function (mapMode, hubsLayer, hubArray, hubData, aggTripData, m
     }
 
     let addHoverEffect = function (selection, primaryColor, hoverColor,
-                                   radiusScale, hoverRadiusScale,
-                                   fillOpacity, strokeOpacity,
-                                   zoom) {
+        radiusScale, hoverRadiusScale,
+        fillOpacity, strokeOpacity,
+        zoom) {
         selection
             .on('mouseover', function () {
                 hubsLayer.selectAll('circle.point').each(function (d) {
@@ -165,7 +165,7 @@ const plotHubs = function (mapMode, hubsLayer, hubArray, hubData, aggTripData, m
                 });
             });
     }
-    
+
     hubsLayer.selectAll("circle.point").remove()
 
     hubArray.forEach(d => {
@@ -178,24 +178,24 @@ const plotHubs = function (mapMode, hubsLayer, hubArray, hubData, aggTripData, m
             .datum(d)
             .attr("id", d.id)
             .attr("class", "point")
-        
+
         addHoverEffect(circle, primaryColor, hoverColor, radiusScale, hoverRadiusScale, fillOpacity, strokeOpacity, initZoom)
-        
+
         circle
             .attr("cx", coords.x)
             .attr("cy", coords.y)
-            .attr("fill", primaryColor)
-            .attr("primary-color", primaryColor)
+            .attr("fill", "#F86858")
+            .attr("primary-color", "#F86858")
             .attr("hover-color", hoverColor)
             .attr("fill-opacity", fillOpacity)
-            .attr("stroke", primaryColor)
+            .attr("stroke", "#F86858")
             .attr("stroke-opacity", strokeOpacity)
             .transition()
             .duration(transitionDuration)
             .attr("r", radiusScale(+d.Count, initZoom))
             .attr("display", mapMode === 'contour' ? 'none' : 'auto')
 
-        
+
     })
 
     const update = () => {
@@ -211,7 +211,7 @@ const plotHubs = function (mapMode, hubsLayer, hubArray, hubData, aggTripData, m
                     .attr("cx", map.latLngToLayerPoint(new L.LatLng(d.lat, d.lon)).x)
                     .attr("cy", map.latLngToLayerPoint(new L.LatLng(d.lat, d.lon)).y)
             })
-        
+
         addHoverEffect(circle, primaryColor, hoverColor, radiusScale, hoverRadiusScale, fillOpacity, strokeOpacity, currentZoom)
     }
 
@@ -256,7 +256,7 @@ function updateMapSelection(filters, tripData, hubsLayer, hubArray, hubData, con
             ...hub,
             Count: tripCountsByHub.get(hub.id)
         }));
-    
+
     switch (globalMapMode) {
         default:
             plotHubs(globalMapMode, hubsLayer, hubArray, hubData, filteredData, minZoom, maxZoom, map.getZoom());
@@ -265,9 +265,9 @@ function updateMapSelection(filters, tripData, hubsLayer, hubArray, hubData, con
             break;
         case 'contour':
             drawContours(hubArray, contourLayer)
-        
+
     }
-    
+
 }
 
 const drawContours = (hubArray, contourLayer) => {
@@ -287,13 +287,22 @@ const drawContours = (hubArray, contourLayer) => {
 
         const densityValues = contours.map(d => d.value);
         const densityExtent = d3.extent(densityValues);
-        
+
+        const baseColor = d3.rgb("#A12B2B");
+
+        // Custom interpolator function
+        const customInterpolator = (t) => {
+            // Adjust lightness and saturation based on `t` (which ranges from 0 to 1)
+            let modifiedColor = baseColor.brighter(t * 2).darker(t * 0.5); // Example modification
+            return modifiedColor.toString();
+        };
+
         // TODO: CONTOUR COLOR SCALE
-        const contourColorScale = d3.scaleSequential(d3.interpolateViridis)
+        const contourColorScale = d3.scaleSequential(customInterpolator)
             .domain(densityExtent);
-        
+
         contourLayer.select('.contour-layer').remove();
-        
+
         const contourGroup = contourLayer.append('g').attr('class', 'contour-layer');
         contourGroup.selectAll('path')
             .data(contours)
@@ -305,7 +314,7 @@ const drawContours = (hubArray, contourLayer) => {
     };
 
     calculateAndDrawContours();
-    
+
     if (globalMapMode == "contour") {
         map.on("zoomend viewreset", calculateAndDrawContours);
     }
@@ -315,7 +324,9 @@ const drawContours = (hubArray, contourLayer) => {
 
 const initialDrawPage = async function () {
     const map = createMap(minZoom, maxZoom, initZoom)
-    L.svg({clickable: true}).addTo(map)
+    L.svg({
+        clickable: true
+    }).addTo(map)
 
     const overlay = d3.select(map.getPanes().overlayPane)
     const svg = overlay.select('svg').attr("pointer-events", "auto")
@@ -324,7 +335,7 @@ const initialDrawPage = async function () {
 
     let [tripData, hubArray, hubData, aggTripData] = await loadData()
     // agg
-    
+
     modePicker = function (mapMode) {
         const currentZoom = map.getZoom();
         plotHubs(mapMode, hubsLayer, hubArray, hubData, aggTripData, minZoom, maxZoom, currentZoom)
@@ -336,8 +347,8 @@ const initialDrawPage = async function () {
             map.off('zoomend viewreset', calculateAndDrawContours);
         }
     }
-    
-    
+
+
     plotHubs("Normal", hubsLayer, hubArray, hubData, aggTripData, minZoom, maxZoom, initZoom)
     // TODO: here is where the titles are set
     let variable = 'StartDate'
@@ -354,4 +365,3 @@ const initialDrawPage = async function () {
 }
 
 initialDrawPage();
-

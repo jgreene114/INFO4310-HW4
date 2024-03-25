@@ -2,7 +2,7 @@ function createBeeswarmChart(selector, variable, title, tripData, hubsLayer, hub
     let aggTrips;
     let countScale = d3.scaleLinear();
     let xScale, xAxis //, brushG, g;
-    
+
     let truncationLimit;
     switch (variable) {
         case 'StartDate':
@@ -18,7 +18,7 @@ function createBeeswarmChart(selector, variable, title, tripData, hubsLayer, hub
             break;
         case 'DistanceMiles':
             truncationLimit = 5;
-            
+
             aggTrips = d3.rollup(tripData, v => ({
                 count: v.length,
                 uniqueStartIDs: new Set(v.map(d => d.StartID))
@@ -32,7 +32,10 @@ function createBeeswarmChart(selector, variable, title, tripData, hubsLayer, hub
             break;
     }
 
-    aggTrips = Array.from(aggTrips, ([key, { count, uniqueStartIDs }]) => ({
+    aggTrips = Array.from(aggTrips, ([key, {
+        count,
+        uniqueStartIDs
+    }]) => ({
         key,
         count,
         uniqueStartIDs: Array.from(uniqueStartIDs)
@@ -62,7 +65,7 @@ function createBeeswarmChart(selector, variable, title, tripData, hubsLayer, hub
     if (chartDiv.select("h1").empty()) {
         chartDiv.append("h1")
             .text(title)
-            .style("color", colorPalette['primary'][3]);
+            .style("color", "#A12B2B");
     }
     let tooltip = chartDiv.select(".tooltip");
     if (tooltip.empty()) {
@@ -74,21 +77,29 @@ function createBeeswarmChart(selector, variable, title, tripData, hubsLayer, hub
             .style("color", colorPalette['complement'][3]);
 
     }
-    
+
     let svg = chartDiv.select('svg.beeswarm-chart');
     if (svg.empty()) {
         svg = chartDiv.append('svg')
             .attr('class', 'beeswarm-chart')
             .attr('data-variable', variable);
     }
-    
-    const margin = { top: 0, right: 25, bottom: 20, left: 25 };
+
+    const margin = {
+        top: 0,
+        right: 25,
+        bottom: 20,
+        left: 25
+    };
     const width = chartDiv.node().clientWidth;
     const height = Math.max(80, width / 4);
     svg.attr('width', width).attr('height', height);
 
     const brush = d3.brushX()
-        .extent([[0, 0], [width - margin.left - margin.right, height - margin.top - margin.bottom]])
+        .extent([
+            [0, 0],
+            [width - margin.left - margin.right, height - margin.top - margin.bottom]
+        ])
         // .extent([[0, 0], [width - margin.left - margin.right, height]])
         .on("start brush end", brushed);
 
@@ -99,7 +110,7 @@ function createBeeswarmChart(selector, variable, title, tripData, hubsLayer, hub
             .attr('transform', `translate(${margin.left},${margin.top})`)
             .call(brush);
     }
-    
+
     function drawChart() {
         switch (variable) {
             case 'StartDate':
@@ -114,7 +125,7 @@ function createBeeswarmChart(selector, variable, title, tripData, hubsLayer, hub
                 break;
             case 'DistanceMiles':
                 xScale = d3.scaleLinear()
-                    .domain([0,truncationLimit])//d3.extent(aggTrips, d => d.key))
+                    .domain([0, truncationLimit]) //d3.extent(aggTrips, d => d.key))
                     .range([0, width - margin.left - margin.right]);
 
                 xAxis = d3.axisBottom(xScale)
@@ -135,7 +146,7 @@ function createBeeswarmChart(selector, variable, title, tripData, hubsLayer, hub
             g = svg.append('g')
                 .attr('class', 'main-group')
                 .attr('transform', `translate(${margin.left},${margin.top})`);
-            
+
             g.append('g')
                 .attr('transform', `translate(0,${height - margin.top - margin.bottom})`)
                 .call(xAxis);
@@ -167,7 +178,7 @@ function createBeeswarmChart(selector, variable, title, tripData, hubsLayer, hub
             circles
                 .attr('cx', d => d.x)
                 .attr('cy', d => d.y);
-            
+
             if (ticks > 100 || simulation.alpha() < 0.01) {
                 simulation.stop();
             }
@@ -178,7 +189,7 @@ function createBeeswarmChart(selector, variable, title, tripData, hubsLayer, hub
     //     .style("border", "solid black 1px")
     //     .style("border-radius", "20px");
 
-    
+
 
     function brushed(event) {
         const selection = event.selection;
@@ -186,7 +197,7 @@ function createBeeswarmChart(selector, variable, title, tripData, hubsLayer, hub
         const outsideColor = unselectedGrey
         const normalColor = colorPalette["complement"][0]
         if (selection && selection[0] !== selection[1]) {
-            
+
             const [x0, x1] = selection;
             const [filter0, filter1] = selection.map(xScale.invert)
             sharedStateFilters[variable] = [filter0, filter1];
@@ -200,7 +211,7 @@ function createBeeswarmChart(selector, variable, title, tripData, hubsLayer, hub
                 .style("opacity", d =>
                     xScale(d.key) >= x0 && xScale(d.key) <= x1 ? 1 : .4
                 );
-            
+
             // let suffix;
             // if (variable === "StartDate") {
             //    
@@ -221,9 +232,9 @@ function createBeeswarmChart(selector, variable, title, tripData, hubsLayer, hub
 
         }
         updateMapSelection(sharedStateFilters, tripData, hubsLayer, hubArray, hubData, contourLayer)
-        
+
     }
-    
+
 
     drawChart();
 
