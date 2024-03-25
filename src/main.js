@@ -179,7 +179,7 @@ const plotHubs = function (mapMode, hubsLayer, hubArray, hubData, aggTripData, m
             .attr("id", d.id)
             .attr("class", "point")
 
-        addHoverEffect(circle, primaryColor, hoverColor, radiusScale, hoverRadiusScale, fillOpacity, strokeOpacity, initZoom)
+        // addHoverEffect(circle, primaryColor, hoverColor, radiusScale, hoverRadiusScale, fillOpacity, strokeOpacity, initZoom)
 
         circle
             .attr("cx", coords.x)
@@ -212,7 +212,7 @@ const plotHubs = function (mapMode, hubsLayer, hubArray, hubData, aggTripData, m
                     .attr("cy", map.latLngToLayerPoint(new L.LatLng(d.lat, d.lon)).y)
             })
 
-        addHoverEffect(circle, primaryColor, hoverColor, radiusScale, hoverRadiusScale, fillOpacity, strokeOpacity, currentZoom)
+        // addHoverEffect(circle, primaryColor, hoverColor, radiusScale, hoverRadiusScale, fillOpacity, strokeOpacity, currentZoom)
     }
 
     map.on("zoomend viewreset", update);
@@ -264,11 +264,12 @@ function updateMapSelection(filters, tripData, hubsLayer, hubArray, hubData, con
         default:
             plotHubs(globalMapMode, hubsLayer, hubArray, hubData, filteredData, minZoom, maxZoom, map.getZoom());
             contourLayer.select('*').remove();
-            map.off('zoomend viewreset', calculateAndDrawContours);
+            // map.off('zoomend viewreset', calculateAndDrawContours);
             break;
         case 'contour':
             drawContours(hubArray, contourLayer)
-            map.on("zoomend viewreset", calculateAndDrawContours);
+            // map.on("zoomend viewreset", calculateAndDrawContours);
+            break;
     }
 
 }
