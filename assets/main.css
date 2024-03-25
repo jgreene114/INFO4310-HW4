@@ -1,15 +1,26 @@
+html, body {
+    margin: 0;
+    height: 100%;
+}
+
 #map {
     position: fixed !important;
-    /*bottom: 0;*/
+    /*bottom: 0; */
     right: 0;
     width: 100%;
     height: 100%;
     z-index: 0;
+    position: fixed !important;
+    /*right: 0;*/
+    /*width: 100%;*/
+    /*z-index: 0;*/
 }
 
-body {
-    margin: 0;
+.leaflet-control-attribution {
+    bottom: 140px !important;
 }
+
+
 
 #parent-chart-container {
     position: fixed;
@@ -62,9 +73,10 @@ body {
     /*opacity: 0;*/
 }
 
-/*.chart-title-div {*/
-/*    transition: opacity 1s, width 1s, height 1s, position 1s;*/
-/*}*/
+.chart-title-div {
+    user-select: none;
+    -webkit-user-select: none;
+}
 
 .mode {
     padding: 0px;
@@ -108,6 +120,7 @@ body {
     /*height: 100px;*/
     /*width: 100px;*/
 }
+
 
 /* .leaflet-control-container .leaflet-top.leaflet-left {
     display: flex;

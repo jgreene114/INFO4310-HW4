@@ -8,6 +8,7 @@ const createMap = function (minZoom, maxZoom, initZoom) {
         maxZoom: maxZoom,
         minZoom: minZoom
     }).addTo(map);
+    map.attributionControl.setPosition('bottomright');
 
     const bBoxPadding = 0.1;
     const bBox = L.latLngBounds(
