@@ -261,7 +261,7 @@ function updateMapSelection(filters, tripData, hubsLayer, hubArray, hubData, con
         default:
             plotHubs(globalMapMode, hubsLayer, hubArray, hubData, filteredData, minZoom, maxZoom, map.getZoom());
             contourLayer.select('*').remove();
-            map.off('zoomend viewreset', calculateAndDrawContours);
+            // map.off('zoomend viewreset', calculateAndDrawContours);
             break;
         case 'contour':
             drawContours(hubArray, contourLayer)
@@ -344,7 +344,7 @@ const initialDrawPage = async function () {
             drawContours(hubArray, contourLayer)
         } else {
             contourLayer.select('*').remove();
-            map.off('zoomend viewreset', calculateAndDrawContours);
+            // map.off('zoomend viewreset', calculateAndDrawContours);
         }
     }
 
@@ -359,7 +359,7 @@ const initialDrawPage = async function () {
         drawContours(hubArray, contourLayer);
     } else {
         contourLayer.select('*').remove();
-        map.off('zoomend viewreset', calculateAndDrawContours);
+        // map.off('zoomend viewreset', calculateAndDrawContours);
     }
 
 }
