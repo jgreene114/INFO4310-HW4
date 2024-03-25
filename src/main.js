@@ -179,7 +179,7 @@ const plotHubs = function (mapMode, hubsLayer, hubArray, hubData, aggTripData, m
             .attr("id", d.id)
             .attr("class", "point")
 
-        addHoverEffect(circle, primaryColor, hoverColor, radiusScale, hoverRadiusScale, fillOpacity, strokeOpacity, initZoom)
+        // addHoverEffect(circle, primaryColor, hoverColor, radiusScale, hoverRadiusScale, fillOpacity, strokeOpacity, initZoom)
 
         circle
             .attr("cx", coords.x)
@@ -212,10 +212,13 @@ const plotHubs = function (mapMode, hubsLayer, hubArray, hubData, aggTripData, m
                     .attr("cy", map.latLngToLayerPoint(new L.LatLng(d.lat, d.lon)).y)
             })
 
-        addHoverEffect(circle, primaryColor, hoverColor, radiusScale, hoverRadiusScale, fillOpacity, strokeOpacity, currentZoom)
+        // addHoverEffect(circle, primaryColor, hoverColor, radiusScale, hoverRadiusScale, fillOpacity, strokeOpacity, currentZoom)
     }
 
     map.on("zoomend viewreset", update);
+    if (globalMapMode === "contour") {
+        map.on("zoomend viewreset", calculateAndDrawContours);
+    }
 
 }
 
@@ -265,13 +268,15 @@ function updateMapSelection(filters, tripData, hubsLayer, hubArray, hubData, con
             break;
         case 'contour':
             drawContours(hubArray, contourLayer)
-
+            // map.on("zoomend viewreset", calculateAndDrawContours);
+            break;
     }
 
 }
 
+let calculateAndDrawContours;
 const drawContours = (hubArray, contourLayer) => {
-    const calculateAndDrawContours = () => {
+    calculateAndDrawContours = () => {
         const points = hubArray.map(hub => {
             const point = map.latLngToLayerPoint(new L.LatLng(hub.lat, hub.lon));
             return [point.x, point.y, hub.Count];
@@ -309,15 +314,17 @@ const drawContours = (hubArray, contourLayer) => {
             .attr('fill', d => contourColorScale(d.value))
             .attr('stroke', 'none')
             .attr('opacity', .1);
-    };
 
+    };
     calculateAndDrawContours();
 
     if (globalMapMode == "contour") {
         map.on("zoomend viewreset", calculateAndDrawContours);
+    } else {
+        map.off("zoomend viewreset", calculateAndDrawContours);
     }
-};
 
+};
 
 
 const initialDrawPage = async function () {
@@ -342,7 +349,7 @@ const initialDrawPage = async function () {
             drawContours(hubArray, contourLayer)
         } else {
             contourLayer.select('*').remove();
-            // map.off('zoomend viewreset', calculateAndDrawContours);
+            map.off('zoomend viewreset', calculateAndDrawContours);
         }
     }
 
@@ -356,8 +363,8 @@ const initialDrawPage = async function () {
     if (globalMapMode === "contour") {
         drawContours(hubArray, contourLayer);
     } else {
-        contourLayer.select('*').remove();
         // map.off('zoomend viewreset', calculateAndDrawContours);
+        contourLayer.select('*').remove();
     }
 
 }
