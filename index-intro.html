@@ -1,1 +1,104 @@
-index.html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIKETOWN | PDX</title>
+    <style>
+        /* Add custom CSS here */
+        @keyframes gradientAnimation {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        body {
+            /* Set up the gradient background */
+            background: linear-gradient(270deg, orange, blue, red);
+            background-size: 600% 600%;
+
+            /* Set up the animation */
+            animation: gradientAnimation 10s ease infinite;
+
+            /* Other styles for body if needed */
+            margin: 0;
+            height: 100vh;
+            color: white;
+
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Additional styling can be added here */
+        header,
+        main,
+        footer {
+            padding: 20px;
+            text-align: center;
+        }
+
+        nav a {
+            color: white;
+            /* or a color that contrasts well with your background */
+            padding: 10px 20px;
+            border: 2px solid white;
+            /* or any other style you prefer */
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        nav a:hover {
+            background-color: white;
+            /* color when hover */
+            color: black;
+            /* text color when hover */
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Data Visualization Project: Bike Sharing Patterns</h1>
+    </header>
+
+    <main>
+        <section>
+            <p>Welcome to 2017 Portland BIKETOWN, an immersive visualization journey that reveals the vibrant pulse of
+                Portland through the lens of its beloved bike-sharing program, NIKE BIKETOWN.<br>
+
+                Embark on a colorful exploration of urban motion and discover how Portland's community moves. Our
+                interactive map unfurls the story of Portland's streets, unraveling the rhythms of daily life from 2017.
+                Witness the ebb and flow of the city as you navigate through patterns of pedal-powered trips, which
+                paint a picture of Portland's heartbeat.<br>
+
+                This project serves a dual purpose: it is both a mirror reflecting collective strides and a beacon for
+                sustainable urban transport. By transforming raw data into a tapestry of rich narratives, we offer a
+                window into the vital role that BIKETOWN plays in Portlanders daily lives.<br>
+
+
+
+                Let's propel into the future together, one ride at a time.</p>
+        </section>
+
+        <nav>
+            <!-- Replace 'visualization.html' with the actual name of your second HTML file if it's different -->
+            <a href="index.html">Discover the Visualizations</a>
+        </nav>
+    </main>
+
+    <footer>
+        <p></p>
+    </footer>
+</body>
+
+</html>
