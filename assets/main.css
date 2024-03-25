@@ -47,7 +47,10 @@ body {
 
 /* todo: style chart titles here*/
 .chart-div h1 {
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-family: "Monoton", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    /*font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;*/
     margin: 10px 10px 0px;
     /*position: fixed;*/
 }
