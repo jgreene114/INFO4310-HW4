@@ -261,7 +261,7 @@ function updateMapSelection(filters, tripData, hubsLayer, hubArray, hubData, con
         default:
             plotHubs(globalMapMode, hubsLayer, hubArray, hubData, filteredData, minZoom, maxZoom, map.getZoom());
             contourLayer.select('*').remove();
-            // map.off('zoomend viewreset', calculateAndDrawContours);
+            map.off('zoomend viewreset', calculateAndDrawContours);
             break;
         case 'contour':
             drawContours(hubArray, contourLayer)
@@ -270,8 +270,9 @@ function updateMapSelection(filters, tripData, hubsLayer, hubArray, hubData, con
 
 }
 
+let calculateAndDrawContours;
 const drawContours = (hubArray, contourLayer) => {
-    const calculateAndDrawContours = () => {
+    calculateAndDrawContours = () => {
         const points = hubArray.map(hub => {
             const point = map.latLngToLayerPoint(new L.LatLng(hub.lat, hub.lon));
             return [point.x, point.y, hub.Count];
@@ -315,11 +316,13 @@ const drawContours = (hubArray, contourLayer) => {
 
     calculateAndDrawContours();
 
-    if (globalMapMode == "contour") {
-        map.on("zoomend viewreset", calculateAndDrawContours);
-    }
-};
+    // if (globalMapMode == "contour") {
+    //     map.on("zoomend viewreset", calculateAndDrawContours);
+    // } else {
+    //     map.off("zoomend viewreset", calculateAndDrawContours);
+    // }
 
+};
 
 
 const initialDrawPage = async function () {
@@ -344,7 +347,7 @@ const initialDrawPage = async function () {
             drawContours(hubArray, contourLayer)
         } else {
             contourLayer.select('*').remove();
-            // map.off('zoomend viewreset', calculateAndDrawContours);
+            map.off('zoomend viewreset', calculateAndDrawContours);
         }
     }
 
@@ -358,8 +361,8 @@ const initialDrawPage = async function () {
     if (globalMapMode === "contour") {
         drawContours(hubArray, contourLayer);
     } else {
-        contourLayer.select('*').remove();
         // map.off('zoomend viewreset', calculateAndDrawContours);
+        contourLayer.select('*').remove();
     }
 
 }
