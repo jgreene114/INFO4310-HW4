@@ -4,6 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Monoton&display=swap" rel="stylesheet">
     <title>BIKETOWN | PDX</title>
     <style>
         /* Add custom CSS here */
@@ -22,36 +25,61 @@
         }
 
         body {
-            /* Set up the gradient background */
             background: linear-gradient(270deg, orange, blue, red);
             background-size: 600% 600%;
-
-            /* Set up the animation */
             animation: gradientAnimation 10s ease infinite;
-
-            /* Other styles for body if needed */
             margin: 0;
+            /* Set margin to 0 */
+            padding: 0;
+            /* Add padding 0 */
             height: 100vh;
             color: white;
-
             display: flex;
             flex-direction: column;
+            justify-content: center;
+            /* Center content vertically */
+            align-items: center;
+            /* Center content horizontally */
+            text-align: center;
+            /* Center text */
         }
 
-        /* Additional styling can be added here */
         header,
         main,
         footer {
-            padding: 20px;
-            text-align: center;
+            width: 80%;
+            /* Set a max width for the content */
+            max-width: 600px;
+            /* Maximum width of the content */
+        }
+
+        .title-header{
+            font-family: "Monoton", sans-serif;
+        }
+
+
+        section {
+            margin-bottom: 20px;
+            margin-left: 40 px;
+            margin-right: 40px;
+            /* Add bottom margin to section for spacing */
+        }
+
+        .paragraph {
+            padding: 90px;
+            padding-top: 30px;
+            font: helvetica;
+        }
+
+        nav {
+            margin-top: 20px;
+            /* Add top margin to nav for spacing */
         }
 
         nav a {
             color: white;
-            /* or a color that contrasts well with your background */
             padding: 10px 20px;
             border: 2px solid white;
-            /* or any other style you prefer */
             border-radius: 5px;
             text-decoration: none;
             transition: background-color 0.3s, color 0.3s;
@@ -59,39 +87,31 @@
 
         nav a:hover {
             background-color: white;
-            /* color when hover */
             color: black;
-            /* text color when hover */
         }
     </style>
 </head>
 
 <body>
     <header>
-        <h1>Data Visualization Project: Bike Sharing Patterns</h1>
+        <h1 class="title-header">BIKETOWN PDX  |  2017 Visualization</h1>
     </header>
 
     <main>
-        <section>
+        <div class="paragraph">
             <p>Welcome to 2017 Portland BIKETOWN, an immersive visualization journey that reveals the vibrant pulse of
-                Portland through the lens of its beloved bike-sharing program, NIKE BIKETOWN.<br>
-
+                Portland through the lens of its beloved bike-sharing program, NIKE BIKETOWN.<br><br>
                 Embark on a colorful exploration of urban motion and discover how Portland's community moves. Our
                 interactive map unfurls the story of Portland's streets, unraveling the rhythms of daily life from 2017.
                 Witness the ebb and flow of the city as you navigate through patterns of pedal-powered trips, which
-                paint a picture of Portland's heartbeat.<br>
-
+                paint a picture of Portland's heartbeat.<br><br>
                 This project serves a dual purpose: it is both a mirror reflecting collective strides and a beacon for
                 sustainable urban transport. By transforming raw data into a tapestry of rich narratives, we offer a
-                window into the vital role that BIKETOWN plays in Portlanders daily lives.<br>
-
-
-
+                window into the vital role that BIKETOWN plays in Portlanders daily lives.<br><br>
                 Let's propel into the future together, one ride at a time.</p>
-        </section>
+        </div>
 
         <nav>
-            <!-- Replace 'visualization.html' with the actual name of your second HTML file if it's different -->
             <a href="index.html">Discover the Visualizations</a>
         </nav>
     </main>
