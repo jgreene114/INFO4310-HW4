@@ -228,12 +228,18 @@ function createBeeswarmChart(selector, variable, title, tripData, hubsLayer, hub
                 .style("visibility", "visible")
                 .style("position", "relative")
                 .text(selection.map(xScale.invert).map(d => {
-                    const hours = Math.floor(d);
-                    const minutes = Math.floor((d - hours) * 60);
-                    const ampm = hours >= 12 ? 'PM' : 'AM';
-                    const formattedHours = ((hours + 11) % 12 + 1);
-                    const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
-                    return `${formattedHours}:${formattedMinutes} ${ampm}`;
+                    if(variable === "StartDate"){
+                        const hours = Math.floor(d);
+                        const minutes = Math.floor((d - hours) * 60);
+                        const ampm = hours >= 12 ? 'PM' : 'AM';
+                        const formattedHours = ((hours + 11) % 12 + 1);
+                        const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
+                        return `${formattedHours}:${formattedMinutes} ${ampm}`;
+                    }
+                    else {
+                        return d.toFixed(1)+"Mi";
+                    }
+                    
                 }).join(" - "));
 
         } else {
